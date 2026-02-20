@@ -242,9 +242,6 @@ async function signUpWithPassword(){
   toast("Account created. Check email if confirmation is required.");
 }
 
-
-}
-
 async function signOut(){
   if(!APP.sb) return;
   await APP.sb.auth.signOut();
