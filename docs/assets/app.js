@@ -702,12 +702,40 @@ async function setNewPasswordFromRecovery(){
 
 async function signOut(){
   if(!APP.sb) return;
-  await APP.sb.auth.signOut();
-  APP.session = null; APP.user = null; APP.me = null; APP.wallet = null;
+
+  // close any open UI bits immediately (so it *feels* instant)
+  const pm = byId('profileMenu');
+  if(pm) pm.style.display = 'none';
+  closeModal?.('authModal');
+  closeModal?.('onboardModal');
+  closeModal?.('creditsModal');
+
+  try{
+    await APP.sb.auth.signOut();
+  }catch(e){
+    console.warn("signOut error (continuing anyway):", e);
+  }
+
+  // IMPORTANT: hard clear local auth tokens so refreshSession can't "re-hydrate" old session
+  try{ hardResetAuthStorage(); }catch(_e){}
+
+  // hard reset app state
+  APP.session = null;
+  APP.user = null;
+  APP.me = null;
+  APP.wallet = null;
   APP.rolePicked = null;
+
+  // confirm session is actually gone (prevents the “still signed in until refresh” bug)
+  try{ await refreshSession(); }catch(_e){}
+
+  // update UI + route to public home
   setAuthedUI();
+  clearAuthArtifacts("home");
   location.hash = "#home";
   await route();
+
+  toast("Signed out");
 }
 
 /* ----------------------------- data: home feed ----------------------------- */
