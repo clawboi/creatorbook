@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>CreatorBook MVP</title>
+  <meta name="theme-color" content="#070707" />
+  <link rel="stylesheet" href="./assets/style.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="wrap inner">
+      <div class="brand"><span class="dot"></span> CREATORBOOK <span class="small">MVP</span></div>
+      <div class="nav">
+        <a class="pill" href="#home">Home</a>
+        <a class="pill" href="#bookings">Bookings</a>
+        <a class="pill" href="#cart">Project Cart <span class="cartCount" id="cartCount"></span></a>
+        <a class="pill" href="#buy">Buy Credits</a>
+        <a class="pill" href="#creator-tools">Creator Tools</a>
+        <a class="pill" href="#settings">Settings</a>
+        <button class="pill" id="btnSignOut" type="button">Sign out</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap hero">
+    <h1 class="h1">Book LA creatives with tiers, credits, and a clean workflow.</h1>
+    <p class="sub">
+      This is a GitHub Pages friendly MVP: Auth (magic link), creator profiles + packages, browsing by service/tier,
+      booking requests, chat per booking, delivery link, and approve/release flow.
+    </p>
+    <div class="row">
+      <span class="badge"><span class="b"></span><span id="whoami">Not signed in</span></span>
+      <span class="badge"><span class="b" style="background:rgba(255,255,255,.35)"></span><span id="rolePill"></span></span>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="card" id="needsConfig" style="display:none">
+      <div class="kv"><h2>Setup required</h2><span class="tag">1 minute</span></div>
+      <p class="small">You need to create <b>config.js</b> with your Supabase URL + anon key.</p>
+      <div class="code">Copy <b>config.example.js</b> → <b>config.js</b> and paste your keys.</div>
+      <p class="small">Also run the SQL schema from README in Supabase first.</p>
+    </div>
+
+    <div class="card" id="authBox" style="display:none">
+      <div class="kv"><h2>Sign in</h2><span class="tag">magic link</span></div>
+      <div class="two" style="margin-top:12px">
+        <div>
+          <input class="in" id="email" placeholder="you@email.com" />
+          <div class="row" style="margin-top:10px">
+            <button class="btn" id="btnMagic" type="button">Send magic link</button>
+            <span class="small">Opens this site after login.</span>
+          </div>
+          <hr class="sep" />
+          <div class="small">
+            Tip: in Supabase Auth, add your GitHub Pages URL to “Redirect URLs”.
+          </div>
+        </div>
+        <div>
+          <div class="item">
+            <div class="title">MVP notes</div>
+            <div class="small" style="margin-top:6px">
+              Payments are stubbed: use Demo Credits for now.
+              When you’re ready, we wire Stripe to mint credits.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="appShell" style="display:none">
+      <!-- HOME -->
+      <div class="view" id="viewHome" style="display:none">
+        <div class="grid">
+          <div class="card half">
+            <div class="kv">
+              <h2>Your wallet</h2>
+              <span class="tag" id="walletBalance">0 credits</span>
+            </div>
+            <div id="demoBlock" style="margin-top:12px">
+              <div class="small"><b>Demo top-up (for testing)</b></div>
+              <div class="row" style="margin-top:8px">
+                <input class="in" id="demoCredits" type="number" min="0" placeholder="Add credits (e.g. 500)" />
+                <button class="btn" id="btnDemoCredits" type="button">Add</button>
+              </div>
+              <div class="small" style="margin-top:8px">
+                Replace this with Stripe later.
+              </div>
+            </div>
+          </div>
+
+          <div class="card half">
+            <div class="kv"><h2>Browse creators</h2><span class="tag">Los Angeles</span></div>
+            <div class="row" style="margin-top:10px">
+              <select class="in" id="browseService" style="max-width:260px">
+                <option value="any">Any service</option>
+                <option value="music_video">Music Video</option>
+                <option value="photography">Photography</option>
+                <option value="reels">Reels / Shorts</option>
+                <option value="editing">Editing</option>
+                <option value="fashion">Fashion Rental</option>
+                <option value="producer">Producer</option>
+              </select>
+              <select class="in" id="browseTier" style="max-width:220px">
+                <option value="any">Any tier</option>
+                <option value="bronze">Bronze</option>
+                <option value="silver">Silver</option>
+                <option value="gold">Gold</option>
+                <option value="elite">Elite</option>
+              </select>
+              <a class="pill" href="#creator-tools">Add packages</a>
+            </div>
+            <div class="list" id="creatorList" style="margin-top:12px"></div>
+          </div>
+
+          <div class="card">
+            <div class="kv"><h2>How the MVP works</h2><span class="tag">credits escrow</span></div>
+            <div class="small" style="margin-top:8px">
+              Creator accepts → client holds credits → creator delivers link → client approves → credits released.
+              Reviews + ranking are included in schema; ranking algorithm can come later.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CREATOR PROFILE VIEW -->
+      <div class="view" id="viewCreator" style="display:none">
+        <div class="grid">
+          <div class="card">
+            <div class="row" style="justify-content:space-between; align-items:center">
+              <div class="badge"><span class="b"></span>Creator</div>
+              <a class="pill" href="#home">Back</a>
+            </div>
+            <div id="creatorProfile" style="margin-top:12px"></div>
+          </div>
+          <div class="card">
+            <div class="kv"><h2>Packages</h2><span class="tag">request to book</span></div>
+            <div id="creatorPackages" style="margin-top:10px"></div>
+          </div>
+          <div class="card">
+            <div class="kv"><h2>Creator reviews</h2><span class="tag">ratings</span></div>
+            <div id="creatorReviews" style="margin-top:10px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOOKINGS LIST -->
+      <div class="view" id="viewBookings" style="display:none">
+        <div class="grid">
+          <div class="card">
+            <div class="kv"><h2>Your bookings</h2><span class="tag">client/creator</span></div>
+            <div class="list" id="bookingList" style="margin-top:12px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CART -->
+<div class="view" id="viewCart" style="display:none">
+  <div class="grid">
+    <div class="card">
+      <div class="kv"><h2>Project Cart</h2><span class="tag">multi-creator</span></div>
+      <div class="small" style="margin-top:8px">Add packages from any creator, then request one project date. This creates 1 booking with multiple lines.</div>
+      <hr class="sep" />
+      <div id="cartList" class="list"></div>
+      <hr class="sep" />
+      <div class="two">
+        <div>
+          <div class="small"><b>Requested date</b></div>
+          <input class="in" id="cartReqDate" type="datetime-local" />
+        </div>
+        <div>
+          <div class="small"><b>Project notes</b></div>
+          <input class="in" id="cartNotes" placeholder="Refs, locations, vibe, deliverables…" />
+        </div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn" id="btnCartRequest" type="button">Request Project Booking</button>
+        <button class="btn ghost" id="btnCartClear" type="button">Clear cart</button>
+        <a class="pill" href="#home">Back</a>
+      </div>
+      <div class="small" style="margin-top:8px" id="cartTotal"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BUY CREDITS -->
+<div class="view" id="viewBuy" style="display:none">
+  <div class="grid">
+    <div class="card half">
+      <div class="kv"><h2>Buy credits</h2><span class="tag">$1 = 1 credit</span></div>
+      <div class="small" style="margin-top:8px">
+        GitHub Pages is static. Real payments require a serverless endpoint. This repo includes Supabase Edge Functions for Stripe.
+      </div>
+      <hr class="sep" />
+      <div class="two">
+        <div>
+          <label class="small"><b>Credits</b></label>
+          <select class="in" id="buyAmount">
+            <option value="200">200</option>
+            <option value="500">500</option>
+            <option value="1000">1000</option>
+            <option value="2000">2000</option>
+          </select>
+        </div>
+        <div>
+          <label class="small"><b>Promo</b> <span class="small">(optional)</span></label>
+          <input class="in" id="buyPromo" placeholder="LALAUNCH10" />
+        </div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn" id="btnBuyCredits" type="button">Pay with Stripe</button>
+        <a class="pill" href="#home">Back</a>
+      </div>
+      <div class="small" style="margin-top:8px" id="buyStatus"></div>
+    </div>
+
+    <div class="card half">
+      <div class="kv"><h2>Dev mode</h2><span class="tag">testing</span></div>
+      <div class="small" style="margin-top:8px">
+        Until Stripe is deployed, use Demo Credits on Home to test bookings end-to-end.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SINGLE BOOKING -->
+      <div class="view" id="viewBooking" style="display:none">
+        <div class="grid">
+          <div class="card">
+            <div id="bookingHeader"></div>
+            <hr class="sep" />
+            <div class="row" id="bookingActions"></div>
+
+            <div id="deliveryBox" style="display:none; margin-top:12px">
+              <div class="small"><b>Submit delivery (link)</b></div>
+              <input class="in" id="deliveryLink" placeholder="https://drive.google.com/..." />
+              <textarea class="in" id="deliveryNote" rows="2" style="margin-top:8px" placeholder="Note (what’s included, revisions)…"></textarea>
+              <div class="row" style="margin-top:8px">
+                <button class="btn" id="submitDelivery" type="button">Submit</button>
+                <button class="btn ghost" type="button" onclick="document.getElementById('deliveryBox').style.display='none'">Cancel</button>
+              </div>
+            </div>
+
+            <div style="margin-top:12px" id="deliveryInfo"></div>
+
+            <hr class="sep" />
+            <div class="kv"><h2>Lines</h2><span class="tag">multi-creator ready</span></div>
+            <div id="bookingLines" style="margin-top:10px"></div>
+          </div>
+
+          <div class="card">
+            <div class="kv"><h2>Chat</h2><span class="tag">per booking</span></div>
+            <div id="msgThread" class="list" style="margin-top:10px"></div>
+            <hr class="sep" />
+            <textarea class="in" id="msgBody" rows="2" placeholder="Message…"></textarea>
+            <div class="row" style="margin-top:8px">
+              <button class="btn" id="sendMsg" type="button">Send</button>
+              <a class="pill" href="#bookings">Back to list</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CREATOR TOOLS -->
+      <div class="view" id="viewCreatorTools" style="display:none">
+        <div class="grid">
+          <div class="card half">
+            <div class="kv"><h2>Create a package</h2><span class="tag">creator only</span></div>
+            <div class="small" style="margin-top:10px">Tip: Switch role in Settings, then set approved=true in Supabase for your creator profile.</div>
+            <hr class="sep" />
+            <div class="two">
+              <div>
+                <label class="small"><b>Service</b></label>
+                <select class="in" id="pkgService">
+                  <option value="music_video">Music Video</option>
+                  <option value="photography">Photography</option>
+                  <option value="reels">Reels / Shorts</option>
+                  <option value="editing">Editing</option>
+                  <option value="fashion">Fashion Rental</option>
+                  <option value="producer">Producer</option>
+                </select>
+              </div>
+              <div>
+                <label class="small"><b>Tier</b></label>
+                <select class="in" id="pkgTier">
+                  <option value="bronze">Bronze</option>
+                  <option value="silver">Silver</option>
+                  <option value="gold">Gold</option>
+                  <option value="elite">Elite</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="margin-top:10px">
+              <label class="small"><b>Title</b></label>
+              <input class="in" id="pkgTitle" placeholder="Bronze Music Video (4 hrs / 1-2 locations)" />
+            </div>
+
+            <div class="two" style="margin-top:10px">
+              <div>
+                <label class="small"><b>Price (credits)</b></label>
+                <input class="in" id="pkgPrice" type="number" min="0" placeholder="500" />
+              </div>
+              <div>
+                <label class="small"><b>Delivery days</b></label>
+                <input class="in" id="pkgDelivery" type="number" min="0" placeholder="7" />
+              </div>
+            </div>
+
+            <div class="two" style="margin-top:10px">
+              <div>
+                <label class="small"><b>Hours</b></label>
+                <input class="in" id="pkgHours" placeholder="4 hours" />
+              </div>
+              <div>
+                <label class="small"><b>Locations</b></label>
+                <input class="in" id="pkgLocations" placeholder="1–2 locations" />
+              </div>
+            </div>
+
+            <div class="two" style="margin-top:10px">
+              <div>
+                <label class="small"><b>Revisions</b></label>
+                <input class="in" id="pkgRevisions" placeholder="1 revision" />
+              </div>
+              <div>
+                <label class="small"><b>Includes</b></label>
+                <input class="in" id="pkgIncludes" placeholder="Basic edit (cuts + color), 4K export" />
+              </div>
+            </div>
+
+            <div style="margin-top:10px">
+              <label class="small"><b>Add-ons</b></label>
+              <input class="in" id="pkgAddons" placeholder="BTS video (+100), 5 reels (+250), extra location (+75)..." />
+            </div>
+
+            <div class="row" style="margin-top:10px">
+              <button class="btn" id="btnCreatePkg" type="button">Create</button>
+              <a class="pill" href="#settings">Go approve me</a>
+            </div>
+          </div>
+
+          <div class="card half">
+            <div class="kv"><h2>Your packages</h2><span class="tag">list</span></div>
+            <div id="myPkgList" class="list" style="margin-top:12px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="view" id="viewSettings" style="display:none">
+        <div class="grid">
+          <div class="card half">
+            <div class="kv"><h2>Profile settings</h2><span class="tag" id="approvedFlag"></span></div>
+            <div style="margin-top:10px">
+              <label class="small"><b>Role</b></label>
+              <select class="in" id="setRole">
+                <option value="client">Client</option>
+                <option value="creator">Creator</option>
+              </select>
+            </div>
+            <div style="margin-top:10px">
+              <label class="small"><b>Name</b></label>
+              <input class="in" id="setName" />
+            </div>
+            <div style="margin-top:10px">
+              <label class="small"><b>City</b></label>
+              <input class="in" id="setCity" />
+            </div>
+            <div style="margin-top:10px">
+              <label class="small"><b>Bio</b></label>
+              <textarea class="in" id="setBio" rows="3"></textarea>
+            </div>
+            <div style="margin-top:10px">
+              <label class="small"><b>Portfolio URL</b></label>
+              <input class="in" id="setPortfolio" placeholder="https://..." />
+            </div>
+            <div style="margin-top:10px">
+              <label class="small"><b>Resume / Reel URL</b></label>
+              <input class="in" id="setResume" placeholder="https://..." />
+            </div>
+            <div class="row" style="margin-top:12px">
+              <button class="btn" id="btnSaveSettings" type="button">Save</button>
+              <a class="pill" href="#home">Home</a>
+            </div>
+          </div>
+
+          <div class="card half">
+            <div class="kv"><h2>Next upgrades</h2><span class="tag">after MVP</span></div>
+            <div class="small" style="margin-top:8px">
+              Stripe credits, featured creators, ranking algorithm, calendar sync, file hosting, disputes, contracts, KYC, payouts.
+            </div>
+            <hr class="sep" />
+            <div class="small">
+              To approve creators in V1: open Supabase → Table Editor → profiles → set <b>approved=true</b> for your creator accounts.
+            </div>
+            <hr class="sep" />
+            <div class="code">Services: Music Video, Photography, Reels, Editing, Fashion Rental, Producer</div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="wrap">
+        © <span id="yr"></span> CreatorBook MVP • Built for GitHub Pages + Supabase
+      </footer>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- Supabase JS (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Config (create config.js from config.example.js) -->
+  <script src="./config.js"></script>
+
+  <script src="./assets/app.js"></script>
+  <script>
+    document.getElementById("yr").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
