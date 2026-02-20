@@ -594,7 +594,13 @@ async function signInWithPassword(){
     // onAuthStateChange will finish UI + close modal
   }catch(e){
     console.error(e);
-    toast(normalizeAuthError(e));
+    const msg = String(e?.message || e || '').toLowerCase();
+    if(msg.includes('timed out')){
+      try{ await hardResetLogin(); }catch(_e){}
+      toast('Sign in got stuck. I reset your local session. Try again.');
+    }else{
+      toast(normalizeAuthError(e));
+    }
   }finally{
     setBtnBusy('authLogin', false, 'Sign in');
   }
@@ -1557,10 +1563,11 @@ async function init(){
   // If Supabase returned an error in the URL hash (e.g., otp_expired), show it and clear.
   handleAuthHashErrors();
   if(APP.sb){
-    APP.sb.auth.onAuthStateChange(async ()=>{
+    APP.sb.auth.onAuthStateChange(async (event, session)=>{
+      // During initial boot restore we ignore auth events to prevent UI fights.
+      if(APP._booting){ return; }
+
       await refreshSession();
-      // If the initial boot restore is still running, let it own routing.
-      if(!APP._booted && APP._bootPromise){ return; }
       if(APP.user){
         await ensureProfile();
         setAuthedUI();
@@ -1576,32 +1583,6 @@ async function init(){
         await route();
       }
     });
-  }
-
-
-  // --- Initial session restore (fixes “refresh signs me out” / UI out-of-sync) ---
-  // Supabase fires INITIAL_SESSION asynchronously; on some browsers the UI can route before it lands.
-  // We do an explicit getSession once at boot, then route.
-  if(!APP._bootPromise){
-    APP._bootPromise = (async ()=>{
-      try{
-        await refreshSession();
-        if(APP.user){
-          await ensureProfile();
-          setAuthedUI();
-          await refreshWallet();
-          await maybeOnboard();
-        }else{
-          setAuthedUI();
-        }
-        await route();
-      }catch(e){
-        console.error(e);
-        try{ toast('Error: ' + String(e?.message || e)); }catch(_e){}
-      }finally{
-        APP._booted = true;
-      }
-    })();
   }
 
   // topbar menu
@@ -1730,6 +1711,25 @@ async function init(){
   // Home quick actions (authed)
   if(byId('homeCreateBtn')) byId('homeCreateBtn').addEventListener('click', ()=>{ location.hash = '#create'; });
   if(byId('homeCreditsBtn')) byId('homeCreditsBtn').addEventListener('click', ()=>{ openCreditsModal?.(); });
+
+  // --- BOOT SESSION RESTORE (fix refresh “kicks me out” / session out-of-sync) ---
+  // Do ONE explicit getSession before routing, then let onAuthStateChange handle future changes.
+  APP._booting = true;
+  try{
+    await refreshSession();
+    if(APP.user){
+      await ensureProfile();
+      setAuthedUI();
+      await refreshWallet();
+      await maybeOnboard();
+    }else{
+      setAuthedUI();
+    }
+  }catch(e){
+    console.error(e);
+  }finally{
+    APP._booting = false;
+  }
 
   await route();
 }
