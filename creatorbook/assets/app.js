@@ -39,16 +39,12 @@ function fmtDateTime(ts){
 
 
 function authRedirectTo(){
-  // Build a safe redirect URL for Supabase Auth on GitHub Pages.
-  // Avoid hardcoding paths so it works for:
-  // - /creatorbook/
-  // - /creatorbook/creatorbook/
-  // - custom domains
+  // HARD SET for nested repo testing:
+  // We always want redirects to land here:
+  // https://clawboi.github.io/creatorbook/creatorbook/
   //
-  // Supabase wants a full URL (no hash). We keep the *current directory*.
-  const { origin, pathname } = location;
-  const base = pathname.endsWith('.html') ? pathname.replace(/[^/]*$/, '') : pathname;
-  return origin + (base.endsWith('/') ? base : (base + '/'));
+  // This avoids double-path bugs from auto-detecting pathname.
+  return location.origin + "/creatorbook/creatorbook/";
 }
 
 function pendingSignupKey(email){ return `cb_pending_signup_${String(email||'').toLowerCase()}`; }
