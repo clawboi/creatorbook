@@ -102,7 +102,7 @@ async function signInMagicLink(){
   if(!email){ toast("Enter your email"); return; }
   const { error } = await APP.sb.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: location.href.split("#")[0] + "#home" }
+    options: { emailRedirectTo: location.origin + location.pathname }
   });
   if(error) toast(error.message); else toast("Check your email for the login link");
 }
