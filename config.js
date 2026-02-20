@@ -1,4 +1,4 @@
 window.CREATORBOOK_CONFIG = {
-  supabaseUrl: "PASTE_SUPABASE_URL",
-  supabaseAnonKey: "PASTE_SUPABASE_ANON_KEY"
+  supabaseUrl: "https://tvxsvxujpuvknkyruwhw.supabase.co",
+  supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR2eHN2eHVqcHV2a25reXJ1d2h3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1NDUwNzgsImV4cCI6MjA4NzEyMTA3OH0.ViCZJVeeG2C6VtiF1mOB1Jh-F_s_XXfFxEDJyVWDMi4"
 };
