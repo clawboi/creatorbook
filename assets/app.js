@@ -187,22 +187,29 @@ async function signInMagicLink(){
   const email = (byId("authEmail")?.value || "").trim();
   if(!email || !email.includes("@")) return toast("Enter a valid email");
 
-  // GitHub Pages friendly redirect (keeps path)
   const redirectTo = location.origin + location.pathname;
+
   const { error } = await APP.sb.auth.signInWithOtp({
     email,
     options: { emailRedirectTo: redirectTo }
   });
+
   if(error) return toast(error.message || "Could not send link");
   toast("Magic link sent. Check your email.");
+}
 
+
+// ---------- GOOGLE SIGN IN ----------
 async function signInWithGoogle(){
   if(!APP.sb) return toast("Supabase not configured");
+
   const redirectTo = location.origin + location.pathname;
+
   const { error } = await APP.sb.auth.signInWithOAuth({
-    provider: 'google',
+    provider: "google",
     options: { redirectTo }
   });
+
   if(error) toast(error.message || "Google sign-in failed");
 }
 
