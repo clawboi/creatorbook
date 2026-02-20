@@ -4,13 +4,42 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>CreatorBook</title>
+
+  <!-- Theme + tiny favicon (no 404 noise) -->
   <meta name="theme-color" content="#06060a" />
   <link rel="icon" href="data:," />
-  <link rel="stylesheet" href="assets/style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js"></script>
+
+  <!-- IMPORTANT: reduce “finicky” cache behavior across browsers -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+  <!-- Preconnect helps Supabase/auth feel snappier -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+
+  <!-- Versioned assets: bump ?v= when you deploy changes -->
+  <link rel="stylesheet" href="assets/style.css?v=10" />
+
+  <!-- Base path single source of truth (prevents /creatorbook/creatorbook drift) -->
+  <script>
+    // GitHub Pages base for this repo
+    window.CREATORBOOK_BASE = "/creatorbook/";
+    // Optional: helpful for debug in console
+    window.CREATORBOOK_BUILD = "index-v10";
+  </script>
+
+  <!-- Load scripts deferred so UI renders reliably before JS runs -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="config.js?v=10"></script>
+  <script defer src="assets/app.js?v=10"></script>
 </head>
+
 <body>
+  <noscript style="color:#fff; padding:16px; display:block; max-width:900px; margin:20px auto;">
+    CreatorBook needs JavaScript enabled to sign in and create accounts.
+  </noscript>
+
   <div class="bg"></div>
 
   <header class="topbar">
@@ -27,31 +56,31 @@
     </nav>
 
     <div class="right">
-  <div class="pill authed" id="creditsPill" style="display:none; cursor:pointer;" title="Credits">
-    <span id="creditsBalTop">0</span>
-    <span class="sep">·</span>
-    <span>credits</span>
-    <span class="sep">·</span>
-    <button class="miniLink" id="btnBuyCredits" type="button" title="Buy credits">Buy credits</button>
-</div>
+      <div class="pill authed" id="creditsPill" style="display:none; cursor:pointer;" title="Credits">
+        <span id="creditsBalTop">0</span>
+        <span class="sep">·</span>
+        <span>credits</span>
+        <span class="sep">·</span>
+        <button class="miniLink" id="btnBuyCredits" type="button" title="Buy credits">Buy credits</button>
+      </div>
 
-  <div class="pill authed" id="whoPill" style="display:none;">
-    <span id="whoName">User</span>
-    <span class="sep">·</span>
-    <span id="whoRole">client</span>
-  </div>
+      <div class="pill authed" id="whoPill" style="display:none;">
+        <span id="whoName">User</span>
+        <span class="sep">·</span>
+        <span id="whoRole">client</span>
+      </div>
 
-  <div class="menuWrap authed" style="display:none;" id="profileMenuWrap">
-    <button class="btn ghost" id="btnProfile">Menu ▾</button>
-    <div class="menu" id="profileMenu" style="display:none;">
-      <a href="#profile" id="menuProfile">Profile</a>
-      <button class="menuBtn" id="menuSignOut">Sign out</button>
+      <div class="menuWrap authed" style="display:none;" id="profileMenuWrap">
+        <button class="btn ghost" id="btnProfile">Menu ▾</button>
+        <div class="menu" id="profileMenu" style="display:none;">
+          <a href="#profile" id="menuProfile">Profile</a>
+          <button class="menuBtn" id="menuSignOut">Sign out</button>
+        </div>
+      </div>
+
+      <button class="btn ghost" id="btnSignIn">Sign in</button>
     </div>
-  </div>
-
-  <button class="btn ghost" id="btnSignIn">Sign in</button>
-</div>
-</header>
+  </header>
 
   <main class="wrap">
 
@@ -59,13 +88,13 @@
     <section class="page show" id="pageHome">
       <h1 class="heroTitle">Book LA creatives with tiers, credits, and a clean workflow.</h1>
       <p class="heroSub">Browse work first. Sign in only when you’re ready to book or get booked.</p>
+
       <div class="row authed" id="homeAuthedActions" style="justify-content:center; gap:10px; margin:14px 0 6px; display:none;">
         <button class="btn" id="homeCreateBtn" type="button">Create Project</button>
         <button class="btn ghost" id="homeCreditsBtn" type="button" title="Credits">
           Credits: <span id="homeCreditsBal">0</span>
         </button>
       </div>
-
 
       <div class="row" style="justify-content:center; gap:10px; margin:16px 0 8px;">
         <button class="chip active" id="homeTabPosts" type="button">Community</button>
@@ -89,49 +118,49 @@
 
       <div id="homePackagesWrap" style="display:none;">
 
-      <div class="grid2">
-        <div class="card">
-          <div class="cardTitle">Explore</div>
-          <div class="row">
-            <select id="homeService">
-              <option value="any">Any service</option>
-              <option value="music_video">Music Video</option>
-              <option value="photography">Photography</option>
-              <option value="reels">Reels / Shorts</option>
-              <option value="editing">Editing</option>
-              <option value="fashion">Fashion (Rent)</option>
-              <option value="producer">Producer</option>
-            </select>
-            <select id="homeTier">
-              <option value="any">Any tier</option>
-              <option value="bronze">Bronze</option>
-              <option value="silver">Silver</option>
-              <option value="gold">Gold</option>
-              <option value="elite">Elite</option>
-            </select>
-            <button class="btn" id="homeRefresh">Refresh</button>
+        <div class="grid2">
+          <div class="card">
+            <div class="cardTitle">Explore</div>
+            <div class="row">
+              <select id="homeService">
+                <option value="any">Any service</option>
+                <option value="music_video">Music Video</option>
+                <option value="photography">Photography</option>
+                <option value="reels">Reels / Shorts</option>
+                <option value="editing">Editing</option>
+                <option value="fashion">Fashion (Rent)</option>
+                <option value="producer">Producer</option>
+              </select>
+              <select id="homeTier">
+                <option value="any">Any tier</option>
+                <option value="bronze">Bronze</option>
+                <option value="silver">Silver</option>
+                <option value="gold">Gold</option>
+                <option value="elite">Elite</option>
+              </select>
+              <button class="btn" id="homeRefresh">Refresh</button>
+            </div>
+            <div class="muted">This feed shows approved creators and their packages.</div>
           </div>
-          <div class="muted">This feed shows approved creators and their packages.</div>
+
+          <div class="card">
+            <div class="cardTitle">How it works</div>
+            <ol class="steps">
+              <li>Browse creators + tiers.</li>
+              <li>Sign in, choose Artist or Creator.</li>
+              <li>Artists create a project → pick a creator → request a date → chat.</li>
+              <li>Credits go into escrow when confirmed. Delivery → approval → rating.</li>
+            </ol>
+          </div>
         </div>
 
         <div class="card">
-          <div class="cardTitle">How it works</div>
-          <ol class="steps">
-            <li>Browse creators + tiers.</li>
-            <li>Sign in, choose Artist or Creator.</li>
-            <li>Artists create a project → pick a creator → request a date → chat.</li>
-            <li>Credits go into escrow when confirmed. Delivery → approval → rating.</li>
-          </ol>
+          <div class="cardTitle">Approved creators</div>
+          <div id="feed" class="feed"></div>
+          <div class="muted" id="feedEmpty" style="display:none;">No packages found. Try “Any”.</div>
         </div>
-      </div>
 
-      <div class="card">
-        <div class="cardTitle">Approved creators</div>
-        <div id="feed" class="feed"></div>
-        <div class="muted" id="feedEmpty" style="display:none;">No packages found. Try “Any”.</div>
       </div>
-
-      </div> <!-- /homePackagesWrap -->
     </section>
 
     <!-- ROLE GATE (after login) -->
@@ -245,7 +274,7 @@
       </div>
     </section>
 
-    <!-- PROFILE (single place for projects + feed + settings) -->
+    <!-- PROFILE -->
     <section class="page authed" id="pageProfile" style="display:none;">
       <div class="pageHead">
         <div>
@@ -444,12 +473,13 @@
         <div class="modalTitle">Welcome</div>
         <button class="x" id="authClose" aria-label="Close">✕</button>
       </div>
+
       <div class="authMode" role="tablist" aria-label="Authentication mode">
         <button class="chip active" id="authModeLogin" type="button" role="tab" aria-selected="true">Sign in</button>
         <button class="chip" id="authModeSignup" type="button" role="tab" aria-selected="false">Create account</button>
       </div>
-      <div class="muted tiny" id="authModeHelp">New here? Create an account. Already a member? Sign in.</div>
 
+      <div class="muted tiny" id="authModeHelp">New here? Create an account. Already a member? Sign in.</div>
 
       <div class="authStack">
         <button class="btn google" id="authGoogle">
@@ -488,11 +518,11 @@
           <button class="btn" id="authLogin" type="button">Sign in</button>
           <button class="btn ghost" id="authSignup" type="button">Create account</button>
         </div>
+
         <div class="authRow" style="margin-top:10px; justify-content:space-between;">
           <button class="btn ghost small" id="authForgot" type="button">Forgot password?</button>
           <button class="btn" id="authSetNewPass" type="button" style="display:none;">Set new password</button>
         </div>
-
 
         <button class="btn ghost small" id="authMagic" type="button">Magic link</button>
 
@@ -509,13 +539,14 @@
     </div>
   </div>
 
-  <!-- Onboarding Modal (first login) -->
+  <!-- Onboarding Modal -->
   <div class="modal" id="onboardModal" style="display:none;">
     <div class="sheet">
       <div class="modalHead">
         <div class="modalTitle">Get started</div>
         <button class="x" id="onboardClose" aria-label="Close">✕</button>
       </div>
+
       <div class="card" style="margin:0;">
         <div class="muted">
           Here’s how CreatorBook works:
@@ -526,6 +557,7 @@
           </ul>
         </div>
       </div>
+
       <div class="card" style="margin-top:12px;">
         <div class="cardTitle">Choose your mode</div>
         <div class="row" style="gap:10px;">
@@ -538,23 +570,21 @@
   </div>
 
   <!-- Credits Modal -->
-<div class="modal" id="creditsModal" style="display:none;">
-  <div class="sheet">
-    <div class="modalTitle">Credits</div>
-    <div class="muted" style="margin-bottom:10px;">For now this is demo top-up. Later we wire Stripe to buy credits.</div>
-    <div class="row">
-      <input id="demoCreditsModal" type="number" min="0" step="1" placeholder="500" />
-      <button class="btn" id="btnAddDemoCreditsModal">Add</button>
-    </div>
-    <div class="muted" style="margin-top:10px;">Balance: <b><span id="walletBalModal">0</span></b> credits</div>
-    <div class="row" style="margin-top:12px; justify-content:flex-end;">
-      <button class="btn ghost" id="btnCloseCredits">Close</button>
+  <div class="modal" id="creditsModal" style="display:none;">
+    <div class="sheet">
+      <div class="modalTitle">Credits</div>
+      <div class="muted" style="margin-bottom:10px;">For now this is demo top-up. Later we wire Stripe to buy credits.</div>
+      <div class="row">
+        <input id="demoCreditsModal" type="number" min="0" step="1" placeholder="500" />
+        <button class="btn" id="btnAddDemoCreditsModal">Add</button>
+      </div>
+      <div class="muted" style="margin-top:10px;">Balance: <b><span id="walletBalModal">0</span></b> credits</div>
+      <div class="row" style="margin-top:12px; justify-content:flex-end;">
+        <button class="btn ghost" id="btnCloseCredits">Close</button>
+      </div>
     </div>
   </div>
-</div>
 
-<div id="toast" class="toast"></div>
-
-  <script src="assets/app.js"></script>
+  <div id="toast" class="toast"></div>
 </body>
 </html>
