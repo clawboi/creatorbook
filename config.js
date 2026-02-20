@@ -1,4 +1,5 @@
+// config.js
 window.CREATORBOOK_CONFIG = {
   supabaseUrl: "https://tvxsvxujpuvknkyruwhw.supabase.co",
-  supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR2eHN2eHVqcHV2a25reXJ1d2h3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1NDUwNzgsImV4cCI6MjA4NzEyMTA3OH0.ViCZJVeeG2C6VtiF1mOB1Jh-F_s_XXfFxEDJyVWDMi4"
+  supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR2eHN2eHVqcHV2a25reXJ1d2h3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1NDUwNzgsImV4cCI6MjA4NzEyMTA3OH0.ViCZJVeeG2C6VtiF1mOB1Jh-F_s_XXfFxEDJyVWDMi4" // the eyJ... anon key (or your publishable anon if the app is updated for it)
 };
