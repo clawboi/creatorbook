@@ -703,41 +703,86 @@ async function setNewPasswordFromRecovery(){
 async function signOut(){
   if(!APP.sb) return;
 
-  // close any open UI bits immediately (so it *feels* instant)
+  // Prevent onAuthStateChange from racing us while we tear down auth.
+  APP._booting = true;
+
+  // Close UI instantly
   const pm = byId('profileMenu');
   if(pm) pm.style.display = 'none';
-  closeModal?.('authModal');
-  closeModal?.('onboardModal');
-  closeModal?.('creditsModal');
+  try{ closeModal('authModal'); }catch(_e){}
+  try{ closeModal('onboardModal'); }catch(_e){}
+  try{ closeModal('creditsModal'); }catch(_e){}
 
+  // Immediately flip UI to "signed out" (feel instant)
+  APP.session = null;
+  APP.user = null;
+  APP.me = null;
+  APP.wallet = null;
+  APP.rolePicked = null;
+  setAuthedUI();
+
+  // 1) Ask Supabase to sign out
   try{
     await APP.sb.auth.signOut();
   }catch(e){
     console.warn("signOut error (continuing anyway):", e);
   }
 
-  // IMPORTANT: hard clear local auth tokens so refreshSession can't "re-hydrate" old session
-  try{ hardResetAuthStorage(); }catch(_e){}
+  // 2) Nuke ANY Supabase auth token keys (more robust than guessing project ref)
+  try{
+    const kill = [];
+    for(let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(!k) continue;
+      const lk = k.toLowerCase();
+      // common Supabase auth token key patterns
+      if(
+        lk.includes('sb-') && lk.includes('-auth-token') ||
+        lk.includes('supabase') && lk.includes('auth') && lk.includes('token') ||
+        lk === 'supabase.auth.token'
+      ){
+        kill.push(k);
+      }
+    }
+    kill.forEach(k => { try{ localStorage.removeItem(k); }catch(_e){} });
 
-  // hard reset app state
+    // also clear sessionStorage versions just in case
+    for(let i = 0; i < sessionStorage.length; i++){
+      const k = sessionStorage.key(i);
+      if(!k) continue;
+      const lk = k.toLowerCase();
+      if(
+        lk.includes('sb-') && lk.includes('-auth-token') ||
+        lk.includes('supabase') && lk.includes('auth') && lk.includes('token') ||
+        lk === 'supabase.auth.token'
+      ){
+        try{ sessionStorage.removeItem(k); }catch(_e){}
+      }
+    }
+  }catch(_e){}
+
+  // 3) Re-check session from Supabase AFTER the wipe (should come back null)
+  try{
+    await sleep(50);
+    await refreshSession();
+  }catch(_e){}
+
+  // 4) Final UI + route to public home
   APP.session = null;
   APP.user = null;
   APP.me = null;
   APP.wallet = null;
   APP.rolePicked = null;
 
-  // confirm session is actually gone (prevents the “still signed in until refresh” bug)
-  try{ await refreshSession(); }catch(_e){}
-
-  // update UI + route to public home
-  setAuthedUI();
   clearAuthArtifacts("home");
   location.hash = "#home";
+
+  APP._booting = false;
+  setAuthedUI();
   await route();
 
   toast("Signed out");
 }
-
 /* ----------------------------- data: home feed ----------------------------- */
 async function fetchHomeFeed(){
   if(!APP.sb) return [];
