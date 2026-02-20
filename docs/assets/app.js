@@ -812,7 +812,7 @@ async function renderHome(){
 
   // bind view buttons
   $$('button[data-view]', feedEl).forEach(btn=>{
-    btn.addEventListener('click', async (e)=>{
+    btn.add('click', async (e)=>{
       e.preventDefault();
       const id = btn.getAttribute('data-view');
       await openCreatorProfile(id);
@@ -937,7 +937,7 @@ async function openCreatorProfile(creatorId){
   on('btnCloseCreator','click',()=>closeModal('creditsModal'));
   // book buttons
   $$('button[data-book]', sheet).forEach(btn=>{
-    btn.addEventListener('click', async ()=>{
+    btn.add('click', async ()=>{
       const pkgId = btn.getAttribute('data-book');
       const pkg = pkgs.find(x=>x.id === pkgId);
       if(!pkg) return;
@@ -979,7 +979,7 @@ async function renderCreatorDashboard(){
     `).join('') : `<div class="muted">No packages yet.</div>`;
 
     $$('button[data-editpkg]', out).forEach(btn=>{
-      btn.addEventListener('click', ()=>{
+      btn.add('click', ()=>{
         const id = btn.getAttribute('data-editpkg');
         const p = pkgs.find(x=>x.id === id);
         if(!p) return;
@@ -1106,10 +1106,10 @@ async function findCreators(){
   }).join('');
 
   // bind
-  $$('button[data-view]', out).forEach(btn=>btn.addEventListener('click', async ()=>{
+  $$('button[data-view]', out).forEach(btn=>btn.add('click', async ()=>{
     await openCreatorProfile(btn.getAttribute('data-view'));
   }));
-  $$('button[data-select]', out).forEach(btn=>btn.addEventListener('click', ()=>{
+  $$('button[data-select]', out).forEach(btn=>btn.add('click', ()=>{
     const pkgId = btn.getAttribute('data-select');
     const pkg = rows.find(x=>x.id === pkgId);
     if(!pkg) return;
@@ -1222,7 +1222,7 @@ function renderProjectCards(rows){
 
 function bindProjectOpen(root){
   $$('button[data-open]', root).forEach(btn=>{
-    btn.addEventListener('click', async ()=>{
+    btn.add('click', async ()=>{
       const id = btn.getAttribute('data-open');
       await openProject(id);
     });
@@ -1601,11 +1601,11 @@ async function route(){
 /* ----------------------------- init bindings ----------------------------- */
 async function init(){
   // If something breaks, surface it (prevents “nothing is clickable” mystery states)
-  window.addEventListener('error', (e)=>{
+  window.add('error', (e)=>{
     console.error(e?.error || e);
     try{ toast('Error: ' + String(e?.message || 'something broke')); }catch(_e){}
   });
-  window.addEventListener('unhandledrejection', (e)=>{
+  window.add('unhandledrejection', (e)=>{
     console.error(e?.reason || e);
     try{ toast('Error: ' + String(e?.reason?.message || e?.reason || 'something broke')); }catch(_e){}
   });
@@ -1649,7 +1649,7 @@ async function init(){
     if(!m) return;
     m.style.display = (m.style.display === 'block') ? 'none' : 'block';
   });
-  document.addEventListener('click',(e)=>{
+  document.add('click',(e)=>{
     const mw = byId('profileMenuWrap');
     const m = byId('profileMenu');
     if(!mw || !m) return;
@@ -1764,7 +1764,7 @@ async function init(){
   on('btnCloseCredits','click',()=>closeModal('creditsModal'));
 
   // hash routing
-  window.addEventListener('hashchange', route);
+  window.add('hashchange', route);
 
   // Home quick actions
   const goCreate = ()=>{
@@ -1783,7 +1783,7 @@ async function init(){
   const hsi = byId('homeCtaSignIn');
   if(hsi) hsi.addEventListener('click', ()=>{ openModal('authModal'); setAuthMode('login'); });
 
-  if(_hsi) _hsi.addEventListener('click', ()=>{
+  if(hsi) hsi.addEventListener('click', ()=>{
     openModal('authModal');
     setAuthMode('login');
   });
