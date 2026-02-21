@@ -140,7 +140,6 @@ function popPostLoginHash(){
 
 
 // Debounced router (prevents tab-focus + click races that can make the UI look "stuck" until refresh)
-let _routeTimer = null;
 
 let _routeTimer = null;
 let _routeInFlight = false;
