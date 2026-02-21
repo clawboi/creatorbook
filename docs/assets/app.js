@@ -2184,7 +2184,7 @@ async function init(){
         location.hash = intended;
       }
     } else {
-      setGuestUI();   // ← this was the one that needed fixing
+      setAuthedUI();   // ← this was the one that needed fixing
     }
 
     if (authArtifactsPresent()) {
