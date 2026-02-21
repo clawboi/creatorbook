@@ -2166,9 +2166,9 @@ async function init(){
   handleAuthHashErrors();
 
   if(APP.sb){
-    APP.sb.auth.onAuthStateChange(_event, _session)=>{
-      if(APP._booting) return;
-      await refreshSession();
+    APP.sb.auth.onAuthStateChange(async (_event, _session)=>{
+  if(APP._booting) return;
+  await refreshSession();
       if(APP.user){
         await ensureProfile();
         setAuthedUI();
