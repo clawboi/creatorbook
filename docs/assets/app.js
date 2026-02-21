@@ -2299,7 +2299,8 @@ document.addEventListener("visibilitychange",()=>{
   setTimeout(()=>window.dispatchEvent(new Event("hashchange")),0);
 });
 
-/* FINAL BFCache FIX — ADD THIS UNDER EVERYTHING */
+init();
+
 window.addEventListener("pageshow", (e) => {
   if (e.persisted) {
     window.location.reload();
