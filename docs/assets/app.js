@@ -2299,8 +2299,6 @@ document.addEventListener("visibilitychange",()=>{
   setTimeout(()=>window.dispatchEvent(new Event("hashchange")),0);
 });
 
-init();
-
 window.addEventListener("pageshow", (e) => {
   if (e.persisted) {
     window.location.reload();
