@@ -192,21 +192,17 @@ function initSupabase(){
   });
   return true;
 }
-
 async function refreshSession(){
+  if(!APP.sb) return;
   try{
-    const { data } = await Promise.race([
-      APP.sb.auth.getSession(),
-      new Promise((_,rej)=>setTimeout(()=>rej("timeout"),1500))
-    ]);
-    APP.session = data?.session ?? null;
-    APP.user = APP.session?.user ?? null;
-    return APP.session;
-  }catch{
-    return null;
+    const { data } = (await Promise.race([APP.sb.auth.getSession(),new Promise((_,r)=>setTimeout(()=>r(null),1500))]));
+    APP.session = data?.session || null;
+    APP.user = APP.session?.user || null;
+  }catch(e){
+    console.warn('refreshSession failed', e);
+    // Keep existing session/user; we'll recover on next successful auth refresh.
   }
 }
-
 
 /* ----------------------------- UI helpers ----------------------------- */
 function showPage(pageId){
@@ -2074,7 +2070,7 @@ async function route(){
     return;
   }
 
-  refreshSession();
+  await refreshSession();
 
   if(!APP.user){
     setAuthedUI();
@@ -2170,9 +2166,9 @@ async function init(){
   handleAuthHashErrors();
 
   if(APP.sb){
-    APP.sb.auth.onAuthStateChange(async (_event, _session)=>{
+    APP.sb.auth.onAuthStateChange(_event, _session)=>{
       if(APP._booting) return;
-      refreshSession();
+      await refreshSession();
       if(APP.user){
         await ensureProfile();
         setAuthedUI();
@@ -2261,7 +2257,7 @@ async function init(){
   // boot restore (prevents refresh/sign-out feel)
   APP._booting = true;
   try{
-    refreshSession();
+    await refreshSession();
     if(APP.user){
       await ensureProfile();
       setAuthedUI();
@@ -2290,3 +2286,11 @@ async function updateMyFollowCounts(){
 }
 
 ;
+
+/* TAB FREEZE RECOVERY PATCH */
+window.addEventListener("pageshow",()=>setTimeout(()=>window.dispatchEvent(new Event("hashchange")),0));
+window.addEventListener("focus",()=>setTimeout(()=>window.dispatchEvent(new Event("hashchange")),0));
+document.addEventListener("visibilitychange",()=>{
+ if(!document.hidden)
+  setTimeout(()=>window.dispatchEvent(new Event("hashchange")),0);
+});
