@@ -2166,24 +2166,34 @@ async function init(){
   handleAuthHashErrors();
 
   if(APP.sb){
-    APP.sb.auth.onAuthStateChange(async (_event, _session)=>{
-  if(APP._booting) return;
-  await refreshSession();
-      if(APP.user){
-        await ensureProfile();
-        setAuthedUI();
-        await refreshWallet();
-        const intended = popPostLoginHash();
-        closeModal('authModal');
-        if(intended){ location.hash = intended; }
-      }else{
-        setAuthedUI();
-      }
-      if(authArtifactsPresent()) clearAuthArtifacts(getHash());
-      await safeRoute();
-    });
-  }
+    if (APP.sb) {
+  APP.sb.auth.onAuthStateChange(async (_event, _session) => {
+    if (APP._booting) return;
 
+    await refreshSession();
+
+    if (APP.user) {
+      await ensureProfile();
+      setAuthedUI();
+      await refreshWallet();
+
+      const intended = popPostLoginHash();
+      closeModal('authModal');
+
+      if (intended) {
+        location.hash = intended;
+      }
+    } else {
+      setGuestUI();   // ← this was the one that needed fixing
+    }
+
+    if (authArtifactsPresent()) {
+      clearAuthArtifacts(getHash());
+    }
+
+    await safeRoute();
+  });
+}
   // profile menu
   on('btnProfile','click',()=>{
     const m = byId('profileMenu');
