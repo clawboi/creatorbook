@@ -1,4 +1,8 @@
 /* CreatorBook — Minimal Stable Router + Tab-Freeze Recovery
+   Purpose: stop "can't click" after tab-switch and remove any JS syntax crashes.
+   This is a stability build: clean routing, safe event wiring, and Supabase auth bootstrap.
+*/
+
 /* --- CONFIG SHIM: do not delete --- */
 const SUPABASE_URL = (window.SUPABASE_URL || window.__SUPABASE_URL || "");
 const SUPABASE_ANON_KEY = (window.SUPABASE_ANON_KEY || window.__SUPABASE_ANON_KEY || "");
