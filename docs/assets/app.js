@@ -149,7 +149,7 @@ async function safeRoute(){
   if(_routeInFlight){ _routeQueued = true; return; }
   _routeInFlight = true;
   try{
-    await safeRoute();
+    await route();
   }catch(e){
     console.error('route failed', e);
     try{ toast('Recovering view…'); }catch(_e){}
