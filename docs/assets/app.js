@@ -2303,4 +2303,4 @@ window.addEventListener("pageshow", (e) => {
   if (e.persisted) {
     window.location.reload();
   }
-})
+});
